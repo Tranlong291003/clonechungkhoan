@@ -12,7 +12,7 @@ const Header = () => {
     <View style={styles.container}>
       <View>
         <AppText variant="titleLarge">Chứng khoán</AppText>
-        <AppText style={styles.date} variant="caption">
+        <AppText style={styles.date} variant="titleLarge">
           {formatNgayThang(new Date())}
         </AppText>
       </View>
@@ -24,16 +24,13 @@ const Header = () => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingTop: s(8),
     paddingBottom: s(12),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   date: {
-    marginTop: s(4),
     color: AppColors.secondaryText,
-    fontWeight: "600",
   },
 });
 export default memo(Header);

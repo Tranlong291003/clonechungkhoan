@@ -27,21 +27,21 @@ export default AppText;
 
 const styles = StyleSheet.create({
   titleLarge: {
-    fontSize: s(22), // Tiêu đề chính (VD: "Chứng khoán")
+    fontSize: s(20), // Tiêu đề chính (VD: "Chứng khoán")
     fontWeight: "700",
     color: AppColors.primaryText,
   },
   titleMedium: {
-    fontSize: s(18), // Tiêu đề phụ, mục nhóm (VD: "Mã chứng khoán của tôi")
-    fontWeight: "600",
+    fontSize: s(16), // Tiêu đề phụ, mục nhóm (VD: "Mã chứng khoán của tôi")
+    fontWeight: "700",
     color: AppColors.primaryText,
   },
   body: {
-    fontSize: s(15), // Dòng nội dung chính (VD: giá, tên mã, công ty)
+    fontSize: s(13), // Dòng nội dung chính (VD: giá, tên mã, công ty)
     color: AppColors.primaryText,
   },
   caption: {
-    fontSize: s(13), // Text phụ, chú thích nhỏ (VD: “Thị trường đã đóng”)
+    fontSize: s(11), // Text phụ, chú thích nhỏ (VD: “Thị trường đã đóng”)
     color: AppColors.secondaryText,
   },
 });
