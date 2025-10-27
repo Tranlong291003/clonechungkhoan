@@ -38,11 +38,13 @@ const CardWatchList = memo(
               <AppText
                 style={[
                   styles.cardPercentage,
-                  { backgroundColor: percentageColor },
+                  {
+                    backgroundColor: percentageColor,
+                  },
                 ]}
                 variant="caption"
               >
-                {percentage}
+                {percentage} %
               </AppText>
             </View>
           </Card.Content>
@@ -84,19 +86,18 @@ const styles = StyleSheet.create({
   },
   cardPrice: {
     fontWeight: "700",
-    textAlign: "center",
     marginBottom: s(2),
+    textAlign: "right",
   },
   cardPercentage: {
+    width: "70%",
     color: AppColors.primaryText,
     fontWeight: "700",
     textAlign: "right",
     alignSelf: "flex-end",
     borderRadius: s(3),
-    paddingLeft: s(10),
-    paddingRight: s(2),
-    paddingTop: s(1),
-    paddingBottom: s(1),
+    paddingHorizontal: s(4),
+    paddingVertical: s(2),
   },
   lineSeparator: {
     height: 0.5,
