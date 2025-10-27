@@ -1,7 +1,7 @@
 import { AppColors } from "@/styles/Colors";
 import { sharedPaddingHorizontal } from "@/styles/sharedStyles";
 import React, { memo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Card } from "react-native-paper";
 import { s } from "react-native-size-matters";
 import AppText from "../Text/AppText";
@@ -11,17 +11,22 @@ interface CardWatchListProps {
   company: string;
   price: string;
   percentage: number;
+  onPress?: () => void;
 }
 
 const CardWatchList = memo(
-  ({ name, company, price, percentage }: CardWatchListProps) => {
+  ({ name, company, price, percentage, onPress }: CardWatchListProps) => {
     const isPositive = percentage >= 0;
     const percentageColor = isPositive
       ? AppColors.positiveGreen
       : AppColors.negativeRed;
 
     return (
-      <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.container}
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardCompanyInfo}>
@@ -52,7 +57,7 @@ const CardWatchList = memo(
             <View style={styles.lineSeparator} />
           </View>
         </Card>
-      </View>
+      </TouchableOpacity>
     );
   }
 );
@@ -79,6 +84,7 @@ const styles = StyleSheet.create({
   cardPriceInfo: {
     flexDirection: "column",
     flex: 1,
+    alignItems: "flex-end",
   },
   chartInfo: {
     flex: 0.7,

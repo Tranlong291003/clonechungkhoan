@@ -1,13 +1,24 @@
+import BasicBottomSheet from "@/components/BottomSheet/BasicBottomSheet";
 import Foodter from "@/components/Foodter/Foodter";
 import Header from "@/components/Header/Header";
 import SearchBar from "@/components/SearchBar";
 import CardWatchList from "@/components/WatchList/CardWatchList";
 import AppSaveView from "@/components/views/AppSaveView";
-import { mockStocks } from "@/data/mockStocks";
-import React from "react";
+import { mockStocks, StockData } from "@/data/mockStocks";
+import React, { useState } from "react";
 import { FlatList } from "react-native";
 
 const HomeScreen = () => {
+  const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
+
+  const handleCardPress = (item: StockData) => {
+    setSelectedStock(item);
+  };
+
+  const handleCloseSheet = () => {
+    setSelectedStock(null);
+  };
+
   return (
     <AppSaveView>
       <Header />
@@ -20,10 +31,12 @@ const HomeScreen = () => {
             company={item.company}
             price={item.price}
             percentage={item.percentage}
+            onPress={() => handleCardPress(item)}
           />
         )}
       />
-      <Foodter />
+      {!selectedStock && <Foodter />}
+      <BasicBottomSheet stockData={selectedStock} onClose={handleCloseSheet} />
     </AppSaveView>
   );
 };
