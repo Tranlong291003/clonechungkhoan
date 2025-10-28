@@ -1,16 +1,16 @@
 import { AppColors } from "@/styles/Colors";
-import { sharedPaddingHorizontal } from "@/styles/sharedStyles";
 import React from "react";
 import { View } from "react-native";
+import { s } from "react-native-size-matters";
 
 const DividerComponent = () => {
   return (
     <View>
       <View
         style={{
-          height: 1,
+          width: "100%",
+          height: s(1),
           backgroundColor: AppColors.separator,
-          marginHorizontal: sharedPaddingHorizontal,
         }}
       />
     </View>
