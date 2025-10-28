@@ -5,7 +5,7 @@ import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
 import { s } from "react-native-size-matters";
@@ -26,7 +26,7 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   // Snapshot points - 90% màn hình
-  const snapPoints = ["92%"];
+  const snapPoints = useMemo(() => ["92%"], []);
 
   // Hiển thị bottom sheet khi có stockData
   useEffect(() => {
@@ -38,10 +38,10 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
   }, [stockData]);
 
   // Hàm đóng Bottom Sheet
-  const handleClosePress = useCallback(() => {
-    bottomSheetRef.current?.close();
-    onClose();
-  }, [onClose]);
+  // const handleClosePress = useCallback(() => {
+  //   bottomSheetRef.current?.close();
+  //   onClose();
+  // }, [onClose]);
 
   // Custom backdrop cho Bottom Sheet
   const renderBackdrop = useCallback(
@@ -192,9 +192,8 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
                     Biểu đồ
                   </AppText>
                 </View>
+                <DividerComponent />
               </View>
-
-              <DividerComponent />
 
               {/* Phần dữ liệu chi tiết */}
               <View style={styles.detailsSection}>
@@ -416,7 +415,7 @@ const styles = StyleSheet.create({
   // Phần biểu đồ vuông
   chartSection: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingVertical: s(15),
+    paddingVertical: s(10),
   },
   chartPlaceholder: {
     width: "100%",
@@ -425,6 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: s(10),
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: s(10),
   },
   chartPlaceholderText: {
     color: AppColors.tertiaryText,
