@@ -1,4 +1,4 @@
-import Foodter from "@/components/Foodter/Foodter";
+import Foodter from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import AppText from "@/components/Text/AppText";
 import AppSaveView from "@/components/views/AppSaveView";

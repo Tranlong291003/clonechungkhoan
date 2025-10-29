@@ -1,5 +1,5 @@
 import BasicBottomSheet from "@/components/BottomSheet/BasicBottomSheet";
-import Foodter from "@/components/Foodter/Foodter";
+import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import SearchBar from "@/components/SearchBar";
 import CardWatchList from "@/components/WatchList/CardWatchList";
@@ -31,11 +31,12 @@ const HomeScreen = () => {
             company={item.company}
             price={item.price}
             percentage={item.percentage}
+            chartData={item.chartData}
             onPress={() => handleCardPress(item)}
           />
         )}
       />
-      {!selectedStock && <Foodter />}
+      {!selectedStock && <Footer />}
       <BasicBottomSheet stockData={selectedStock} onClose={handleCloseSheet} />
     </AppSaveView>
   );

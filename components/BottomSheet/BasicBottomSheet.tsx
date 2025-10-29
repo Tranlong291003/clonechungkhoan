@@ -1,4 +1,4 @@
-import { StockData } from "@/data/mockStocks";
+import { mockStocks, StockData } from "@/data/mockStocks";
 import { AppColors } from "@/styles/Colors";
 import { sharedPaddingHorizontal } from "@/styles/sharedStyles";
 import BottomSheet, {
@@ -8,11 +8,12 @@ import BottomSheet, {
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
-import { s } from "react-native-size-matters";
+import { s, vs } from "react-native-size-matters";
 import DividerComponent from "../DividerComponent";
-import Foodter from "../Foodter/Foodter";
-import MoreMenuButton from "../MoreMenuButton";
+import Footer from "../Footer/Footer";
+import CustomMoreMenu from "../MoreMenu/CustomMoreMenu";
 import AppText from "../Text/AppText";
+import MiniChart from "../WatchList/MiniChart";
 
 interface BasicBottomSheetProps {
   stockData: StockData | null;
@@ -24,6 +25,11 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
   onClose,
 }) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const scrollOffset = useRef(0);
+
+  // Nhân đôi data để tạo hiệu ứng scroll vô hạn
+  const duplicatedStocks = useMemo(() => [...mockStocks, ...mockStocks], []);
 
   // Snapshot points - 90% màn hình
   const snapPoints = useMemo(() => ["92%"], []);
@@ -37,6 +43,42 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
     }
   }, [stockData]);
 
+  // Auto scroll FlatList - smooth continuous scroll chỉ khi bottom sheet mở
+  useEffect(() => {
+    // Chỉ scroll khi có stockData (bottom sheet đang mở)
+    if (!stockData || mockStocks.length === 0) {
+      // Reset scroll offset khi đóng
+      scrollOffset.current = 0;
+      return;
+    }
+
+    const ITEM_WIDTH = s(120); // Độ rộng mỗi item + margin
+    const HALF_WIDTH = mockStocks.length * ITEM_WIDTH; // Nửa danh sách (phần gốc)
+    const SCROLL_SPEED = 1; // Tốc độ scroll (pixel mỗi lần) - điều chỉnh để scroll nhanh/chậm hơn
+
+    const interval = setInterval(() => {
+      scrollOffset.current += SCROLL_SPEED;
+
+      // Reset về đầu phần thứ 2 khi scroll hết phần thứ 1 (tạo hiệu ứng vô hạn)
+      if (scrollOffset.current >= HALF_WIDTH) {
+        scrollOffset.current = 0;
+        flatListRef.current?.scrollToOffset({
+          offset: 0,
+          animated: false, // Không animate khi reset
+        });
+      } else {
+        flatListRef.current?.scrollToOffset({
+          offset: scrollOffset.current,
+          animated: true,
+        });
+      }
+    }, 16); // ~60fps
+
+    // Cleanup: dừng scroll khi component unmount hoặc stockData thay đổi
+    return () => {
+      clearInterval(interval);
+    };
+  }, [stockData]);
   // Hàm đóng Bottom Sheet
   // const handleClosePress = useCallback(() => {
   //   bottomSheetRef.current?.close();
@@ -62,22 +104,43 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
       {stockData && (
         <View style={styles.topOverlay}>
           <FlatList
+            ref={flatListRef}
             horizontal
-            showsHorizontalScrollIndicator={true}
-            automaticallyAdjustContentInsets={true}
-            data={[
-              "Hello",
-              "Hello",
-              "Helalo",
-              "Hello",
-              "Hello",
-              "Hello",
-              "Hello",
-              "Hello",
-              "Hello",
-            ]}
+            data={duplicatedStocks}
+            keyExtractor={(item, index) => `${item.name}-${index}`}
+            showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
             renderItem={({ item }) => (
-              <AppText variant="titleLarge">{item}</AppText>
+              <View key={item.name} style={{ marginRight: s(10) }}>
+                <View style={{ flexDirection: "row", gap: s(10) }}>
+                  <View style={{ flexDirection: "column" }}>
+                    <AppText variant="titleMedium">{item.name}</AppText>
+                    <AppText
+                      variant="caption"
+                      style={{
+                        color:
+                          item.percentage >= 0
+                            ? AppColors.positiveGreen
+                            : AppColors.negativeRed,
+                      }}
+                    >
+                      {item.percentage >= 0 ? "+" : ""}
+                      {item.percentage}%
+                    </AppText>
+                    <AppText
+                      variant="caption"
+                      style={{ color: AppColors.secondaryText }}
+                    >
+                      {item.price}
+                    </AppText>
+                  </View>
+                  <MiniChart
+                    data={item.chartData || []}
+                    isPositive={item.percentage >= 0}
+                    height={s(25)}
+                  />
+                </View>
+              </View>
             )}
           />
         </View>
@@ -103,18 +166,34 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
             <View style={styles.headerContainer}>
               <View style={styles.headerTitleContainer}>
                 <AppText variant="titleLarge">{stockData.name}</AppText>
-                <AppText variant="body" style={styles.headerCompanyText}>
-                  {stockData.company}
-                </AppText>
+                <AppText variant="caption">{stockData.company}</AppText>
               </View>
               <View style={styles.headerIconContainer}>
-                <MoreMenuButton
-                  iconSize={24}
-                  style={{ backgroundColor: AppColors.secondaryBackground }}
+                <CustomMoreMenu
+                  backgroundColor={AppColors.secondaryBackground}
+                  items={[
+                    {
+                      key: "share-stock-code",
+                      label: "Chia sẻ mã" + "\n" + "chứng khoán",
+                      icon: "share-social-outline",
+                      onPress: () => {},
+                    },
+                    {
+                      key: "copy-stock-link",
+                      label: "Sao chép liên kết",
+                      icon: "link-outline",
+                      onPress: () => {},
+                    },
+                    {
+                      key: "manage-stock-code",
+                      label: "Quản lý mã" + "\n" + "chứng khoán",
+                      icon: "list-outline",
+                      onPress: () => {},
+                    },
+                  ]}
                 />
                 <IconButton
                   icon="close"
-                  size={24}
                   onPress={onClose}
                   style={styles.closeButton}
                   iconColor={AppColors.iconSecondary}
@@ -185,137 +264,86 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
               {/* Phần biểu đồ vuông */}
               <View style={styles.chartSection}>
                 <View style={styles.chartPlaceholder}>
-                  <AppText
-                    style={styles.chartPlaceholderText}
-                    variant="caption"
-                  >
-                    Biểu đồ
-                  </AppText>
+                  <AppText variant="caption">Biểu đồ</AppText>
                 </View>
                 <DividerComponent />
               </View>
 
               {/* Phần dữ liệu chi tiết */}
               <View style={styles.detailsSection}>
-                <AppText variant="titleMedium" style={styles.sectionTitle}>
+                <AppText variant="titleMedium" style={{ marginBottom: s(15) }}>
                   Chi tiết
                 </AppText>
                 <View style={styles.detailsGrid}>
                   <View style={styles.detailsColumn}>
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Giá mở cửa hôm nay
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.todayOpen}
-                      </AppText>
+                      <AppText variant="caption">Giá mở cửa hôm nay</AppText>
+                      <AppText variant="body">{stockData.todayOpen}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Giá cao hôm nay
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.todayHigh}
-                      </AppText>
-                    </View>
-                    <DividerComponent />
-
-                    <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Giá thấp hôm nay
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.todayLow}
-                      </AppText>
+                      <AppText variant="caption">Giá cao hôm nay</AppText>
+                      <AppText variant="body">{stockData.todayHigh}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Khối lượng
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.volume}
-                      </AppText>
+                      <AppText variant="caption">Giá thấp hôm nay</AppText>
+                      <AppText variant="body">{stockData.todayLow}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Tỷ lệ giá/lợi nhuận
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.peRatio}
-                      </AppText>
+                      <AppText variant="caption">Khối lượng</AppText>
+                      <AppText variant="body">{stockData.volume}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        GT vốn hóa
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.marketCap}
-                      </AppText>
+                      <AppText variant="caption">Tỷ lệ giá/lợi nhuận</AppText>
+                      <AppText variant="body">{stockData.peRatio}</AppText>
+                    </View>
+                    <DividerComponent />
+                    <View style={styles.detailItem}>
+                      <AppText variant="caption">GT vốn hóa</AppText>
+                      <AppText variant="body">{stockData.marketCap}</AppText>
                     </View>
                     <DividerComponent />
                   </View>
                   <View style={styles.detailsColumn}>
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Cao trong 52 tuần
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.week52High}
-                      </AppText>
+                      <AppText variant="caption">Cao trong 52 tuần</AppText>
+                      <AppText variant="body">{stockData.week52High}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Thấp trong 52 tuần
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.week52Low}
-                      </AppText>
+                      <AppText variant="caption">Thấp trong 52 tuần</AppText>
+                      <AppText variant="body">{stockData.week52Low}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Khối lượng TB
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
+                      <AppText variant="caption">Khối lượng TB</AppText>
+                      <AppText variant="body">
                         {stockData.averageVolume}
                       </AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Lợi tức
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
+                      <AppText variant="caption">Lợi tức</AppText>
+                      <AppText variant="body">
                         {stockData.dividendYield}
                       </AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        Beta
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.beta}
-                      </AppText>
+                      <AppText variant="caption">Beta</AppText>
+                      <AppText variant="body">{stockData.beta}</AppText>
                     </View>
                     <DividerComponent />
                     <View style={styles.detailItem}>
-                      <AppText style={styles.detailLabel} variant="body">
-                        EPS
-                      </AppText>
-                      <AppText style={styles.detailValue} variant="body">
-                        {stockData.eps}
-                      </AppText>
+                      <AppText variant="caption">EPS</AppText>
+                      <AppText variant="body">{stockData.eps}</AppText>
                     </View>
                     <DividerComponent />
                   </View>
                 </View>
-
                 <AppText style={styles.yahooLink} variant="caption">
                   Dữ liệu khác từ Yahoo Finance
                 </AppText>
@@ -326,7 +354,7 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
           )}
         </BottomSheetScrollView>
       </BottomSheet>
-      {stockData && <Foodter />}
+      {stockData && <Footer />}
     </>
   );
 };
@@ -355,10 +383,9 @@ const styles = StyleSheet.create({
     paddingBottom: s(20),
   },
   headerContainer: {
-    paddingTop: s(15),
-    paddingBottom: s(10),
+    paddingVertical: s(10),
     flexDirection: "row",
-    alignItems: "center",
+    // alignItems: "center",
     justifyContent: "space-between",
   },
   headerTitleContainer: {
@@ -366,21 +393,22 @@ const styles = StyleSheet.create({
     gap: s(4),
     alignItems: "flex-end",
   },
-  headerCompanyText: {
-    color: AppColors.secondaryText,
-  },
+
   headerIconContainer: {
     flexDirection: "row",
     gap: s(10),
     alignItems: "center",
+    justifyContent: "flex-end",
   },
   closeButton: {
     backgroundColor: AppColors.secondaryBackground,
     borderRadius: 9999,
+    height: s(30),
+    width: s(30),
   },
   // Phần thông tin giá
   priceInfoSection: {
-    paddingVertical: s(5),
+    paddingVertical: vs(5),
   },
   priceInfoRow: {
     flexDirection: "row",
@@ -393,29 +421,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: s(8),
   },
-  priceLabel: {
-    color: AppColors.secondaryText,
-    marginBottom: s(8),
-  },
-  priceValue: {
-    fontSize: s(24),
-    fontWeight: "700",
-    color: AppColors.primaryText,
-    marginBottom: s(4),
-  },
-  pricePercent: {
-    fontSize: s(16),
-    fontWeight: "600",
-    marginBottom: s(4),
-  },
-  priceMeta: {
-    color: AppColors.secondaryText,
-    marginTop: s(4),
-  },
+
   // Phần biểu đồ vuông
   chartSection: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingVertical: s(10),
+    paddingVertical: vs(10),
   },
   chartPlaceholder: {
     width: "100%",
@@ -426,20 +436,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: s(10),
   },
-  chartPlaceholderText: {
-    color: AppColors.tertiaryText,
-  },
+
   // Phần dữ liệu chi tiết
   detailsSection: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingVertical: s(15),
-  },
-  sectionTitle: {
-    marginBottom: s(15),
+    paddingVertical: vs(15),
   },
   detailsGrid: {
     flexDirection: "row",
-    gap: s(20),
+    gap: s(10),
   },
   detailsColumn: {
     flex: 1,
@@ -450,16 +455,9 @@ const styles = StyleSheet.create({
     marginTop: s(4),
     marginBottom: s(8),
   },
-  detailLabel: {
-    color: AppColors.secondaryText,
-    fontSize: s(11),
-  },
-  detailValue: {
-    fontWeight: "600",
-    fontSize: s(11),
-  },
+
   yahooLink: {
     color: AppColors.accentBlue,
-    marginTop: s(10),
+    marginTop: vs(10),
   },
 });

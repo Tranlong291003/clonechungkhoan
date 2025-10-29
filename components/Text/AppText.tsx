@@ -27,7 +27,7 @@ export default AppText;
 
 const styles = StyleSheet.create({
   titleLarge: {
-    fontSize: s(20), // Tiêu đề chính (VD: "Chứng khoán")
+    fontSize: s(18), // Tiêu đề chính (VD: "Chứng khoán")
     fontWeight: "700",
     color: AppColors.primaryText,
   },
@@ -37,11 +37,13 @@ const styles = StyleSheet.create({
     color: AppColors.primaryText,
   },
   body: {
-    fontSize: s(13), // Dòng nội dung chính (VD: giá, tên mã, công ty)
+    fontSize: s(11), // Dòng nội dung chính (VD: giá, tên mã, công ty)
+    fontWeight: "600",
     color: AppColors.primaryText,
   },
   caption: {
     fontSize: s(11), // Text phụ, chú thích nhỏ (VD: “Thị trường đã đóng”)
     color: AppColors.secondaryText,
+    fontWeight: "600",
   },
 });

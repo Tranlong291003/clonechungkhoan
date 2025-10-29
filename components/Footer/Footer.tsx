@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { s } from "react-native-size-matters";
 import AppText from "../Text/AppText";
 
-const Foodter = () => {
+const Footer = () => {
   return (
     <View style={styles.container}>
       <View style={styles.footerContainer}>
@@ -21,7 +21,7 @@ const Foodter = () => {
   );
 };
 
-export default Foodter;
+export default Footer;
 
 const styles = StyleSheet.create({
   container: {

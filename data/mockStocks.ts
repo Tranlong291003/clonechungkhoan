@@ -22,9 +22,10 @@ export interface StockData {
   dividendYield: string;
   beta: string;
   eps: string;
+  chartData?: number[]; // Dữ liệu cho biểu đồ mini (10-15 điểm)
 }
 
-export const mockStocks: StockData[] = [
+const mockStocksRaw: StockData[] = [
   {
     id: "1",
     name: "HD",
@@ -1276,3 +1277,33 @@ export const mockStocks: StockData[] = [
     eps: "-5.50",
   },
 ];
+
+function generateMiniChartData(id: string, percentage: number): number[] {
+  const totalPoints = 12;
+  const base = 100;
+  const data: number[] = [base];
+  // seed từ id để ổn định
+  let seed = 0;
+  for (let i = 0; i < id.length; i++)
+    seed = (seed * 31 + id.charCodeAt(i)) >>> 0;
+  const rand = () => {
+    // Linear Congruential Generator đơn giản cho tính ổn định
+    seed = (1664525 * seed + 1013904223) >>> 0;
+    return (seed % 1000) / 1000; // 0..1
+  };
+  const avgStep = (percentage || 0) / totalPoints;
+  for (let i = 1; i < totalPoints; i++) {
+    const noise = (rand() - 0.5) * 1.5; // nhiễu nhẹ ±0.75
+    const next = Math.max(1, data[i - 1] + avgStep + noise);
+    data.push(next);
+  }
+  return data;
+}
+
+export const mockStocks: StockData[] = mockStocksRaw.map((s) => ({
+  ...s,
+  chartData:
+    s.chartData && s.chartData.length > 0
+      ? s.chartData
+      : generateMiniChartData(s.id, s.percentage),
+}));

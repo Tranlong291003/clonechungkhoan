@@ -5,17 +5,26 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Card } from "react-native-paper";
 import { s } from "react-native-size-matters";
 import AppText from "../Text/AppText";
+import MiniChart from "./MiniChart";
 
 interface CardWatchListProps {
   name: string;
   company: string;
   price: string;
   percentage: number;
+  chartData?: number[];
   onPress?: () => void;
 }
 
 const CardWatchList = memo(
-  ({ name, company, price, percentage, onPress }: CardWatchListProps) => {
+  ({
+    name,
+    company,
+    price,
+    percentage,
+    chartData,
+    onPress,
+  }: CardWatchListProps) => {
     const isPositive = percentage >= 0;
     const percentageColor = isPositive
       ? AppColors.positiveGreen
@@ -35,7 +44,15 @@ const CardWatchList = memo(
               </AppText>
               <AppText variant="caption">{company}</AppText>
             </View>
-            <View style={styles.chartInfo}></View>
+            <View style={styles.chartInfo}>
+              {chartData && (
+                <MiniChart
+                  data={chartData}
+                  isPositive={isPositive}
+                  height={s(25)}
+                />
+              )}
+            </View>
             <View style={styles.cardPriceInfo}>
               <AppText style={styles.cardPrice} variant="body">
                 {price}
@@ -75,7 +92,7 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flexDirection: "row",
-    gap: s(2),
+    gap: s(5),
   },
   cardCompanyInfo: {
     flexDirection: "column",
@@ -88,7 +105,10 @@ const styles = StyleSheet.create({
   },
   chartInfo: {
     flex: 0.7,
-    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: s(5),
+    gap: s(4),
   },
   cardPrice: {
     fontWeight: "700",
@@ -96,7 +116,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   cardPercentage: {
-    width: "70%",
+    minWidth: s(50),
     color: AppColors.primaryText,
     fontWeight: "700",
     textAlign: "right",
@@ -104,6 +124,7 @@ const styles = StyleSheet.create({
     borderRadius: s(3),
     paddingHorizontal: s(4),
     paddingVertical: s(2),
+    gap: s(2),
   },
   lineSeparator: {
     height: 0.5,
