@@ -10,7 +10,7 @@ const Footer = () => {
     <View style={styles.container}>
       <View style={styles.footerContainer}>
         <View style={styles.yahooContainer}>
-          <AppText style={styles.yahooText} variant="caption">
+          <AppText style={{ fontWeight: "700" }} variant="caption">
             Yahoo!
           </AppText>
           <AppText variant="caption">Finance</AppText>
@@ -38,8 +38,5 @@ const styles = StyleSheet.create({
   },
   yahooContainer: {
     flexDirection: "row",
-  },
-  yahooText: {
-    fontWeight: "700",
   },
 });

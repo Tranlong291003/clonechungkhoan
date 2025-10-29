@@ -166,7 +166,9 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
             <View style={styles.headerContainer}>
               <View style={styles.headerTitleContainer}>
                 <AppText variant="titleLarge">{stockData.name}</AppText>
-                <AppText variant="caption">{stockData.company}</AppText>
+                <AppText numberOfLines={2} variant="caption">
+                  {stockData.company}
+                </AppText>
               </View>
               <View style={styles.headerIconContainer}>
                 <CustomMoreMenu
@@ -392,6 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: s(4),
     alignItems: "flex-end",
+    flex: 1,
   },
 
   headerIconContainer: {
@@ -399,6 +402,7 @@ const styles = StyleSheet.create({
     gap: s(10),
     alignItems: "center",
     justifyContent: "flex-end",
+    flex: 0.6,
   },
   closeButton: {
     backgroundColor: AppColors.secondaryBackground,

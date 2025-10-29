@@ -39,10 +39,15 @@ const CardWatchList = memo(
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardCompanyInfo}>
-              <AppText variant="body" style={{ fontWeight: "700" }}>
+              <AppText
+                variant="titleMedium"
+                // style={{ fontSize: s(14), fontWeight: "700" }}
+              >
                 {name}
               </AppText>
-              <AppText variant="caption">{company}</AppText>
+              <AppText numberOfLines={1} variant="caption">
+                {company}
+              </AppText>
             </View>
             <View style={styles.chartInfo}>
               {chartData && (
