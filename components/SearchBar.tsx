@@ -4,16 +4,19 @@ import * as React from "react";
 import { StyleSheet, View } from "react-native";
 import { IconButton, Searchbar } from "react-native-paper";
 
-const SearchBar = () => {
-  const [searchQuery, setSearchQuery] = React.useState("");
+interface SearchBarProps {
+  value: string;
+  onChangeText: (query: string) => void;
+}
 
+const SearchBar = ({ value, onChangeText }: SearchBarProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <Searchbar
           placeholder="Tìm kiếm"
-          onChangeText={setSearchQuery}
-          value={searchQuery}
+          onChangeText={onChangeText}
+          value={value}
           style={styles.searchbar}
           inputStyle={styles.inputStyle}
           iconColor={AppColors.secondaryText}
@@ -27,7 +30,7 @@ const SearchBar = () => {
           iconColor={AppColors.secondaryText}
           style={styles.filterIcon}
           onPress={() => {
-            // Handle filter action
+            // Handle voice search action
           }}
         />
       </View>
