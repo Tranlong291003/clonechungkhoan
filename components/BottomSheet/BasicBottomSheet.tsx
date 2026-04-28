@@ -9,7 +9,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
 import { s, vs } from "react-native-size-matters";
-import DividerComponent from "../DividerComponent";
 import Footer from "../Footer/Footer";
 import CustomMoreMenu from "../MoreMenu/CustomMoreMenu";
 import AppText from "../Text/AppText";
@@ -31,8 +30,11 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
   // Nhân đôi data để tạo hiệu ứng scroll vô hạn
   const duplicatedStocks = useMemo(() => [...mockStocks, ...mockStocks], []);
 
-  // Snapshot points - 90% màn hình
   const snapPoints = useMemo(() => ["92%"], []);
+  const isSelectedPositive = (stockData?.percentage ?? 0) >= 0;
+  const selectedChangeColor = isSelectedPositive
+    ? AppColors.positiveGreen
+    : AppColors.negativeRed;
 
   // Hiển thị bottom sheet khi có stockData
   useEffect(() => {
@@ -100,7 +102,6 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
 
   return (
     <>
-      {/* Phần trên 10% - OVERLAY khi mở bottom sheet */}
       {stockData && (
         <View style={styles.topOverlay}>
           <FlatList
@@ -111,29 +112,26 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
             showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
             renderItem={({ item }) => (
-              <View key={item.name} style={{ marginRight: s(10) }}>
-                <View style={{ flexDirection: "row", gap: s(10) }}>
-                  <View style={{ flexDirection: "column" }}>
-                    <AppText variant="titleMedium">{item.name}</AppText>
-                    <AppText
-                      variant="caption"
-                      style={{
-                        color:
-                          item.percentage >= 0
-                            ? AppColors.positiveGreen
-                            : AppColors.negativeRed,
-                      }}
-                    >
-                      {item.percentage >= 0 ? "+" : ""}
-                      {item.percentage}%
-                    </AppText>
-                    <AppText
-                      variant="caption"
-                      style={{ color: AppColors.secondaryText }}
-                    >
-                      {item.price}
-                    </AppText>
-                  </View>
+              <View key={item.name} style={styles.tickerCard}>
+                <View style={styles.tickerInfo}>
+                  <AppText variant="titleMedium">{item.name}</AppText>
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color:
+                        item.percentage >= 0
+                          ? AppColors.positiveGreen
+                          : AppColors.negativeRed,
+                    }}
+                  >
+                    {item.percentage >= 0 ? "+" : ""}
+                    {item.percentage}%
+                  </AppText>
+                  <AppText variant="caption" style={styles.tickerPrice}>
+                    {item.price}
+                  </AppText>
+                </View>
+                <View style={styles.tickerChart}>
                   <MiniChart
                     data={item.chartData || []}
                     isPositive={item.percentage >= 0}
@@ -146,7 +144,6 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
         </View>
       )}
 
-      {/* Bottom Sheet - 90% màn hình */}
       <BottomSheet
         ref={bottomSheetRef}
         index={-1} // -1 = đóng, 0 = mở
@@ -162,9 +159,14 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
         onClose={onClose}
       >
         {stockData && (
-          <View style={{ paddingHorizontal: sharedPaddingHorizontal }}>
+          <View style={styles.sheetHeaderWrapper}>
             <View style={styles.headerContainer}>
               <View style={styles.headerTitleContainer}>
+                <View style={styles.symbolBadge}>
+                  <AppText variant="caption" style={styles.symbolBadgeText}>
+                    {stockData.exchange}
+                  </AppText>
+                </View>
                 <AppText variant="titleLarge">{stockData.name}</AppText>
                 <AppText numberOfLines={2} variant="caption">
                   {stockData.company}
@@ -202,26 +204,28 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
                 />
               </View>
             </View>
-            <DividerComponent />
           </View>
         )}
         <BottomSheetScrollView contentContainerStyle={styles.scrollContent}>
           {stockData && (
             <>
-              {/* Phần thông tin giá */}
-              <View style={{ paddingHorizontal: sharedPaddingHorizontal }}>
+              <View style={styles.priceSectionWrapper}>
                 <View style={styles.priceInfoSection}>
                   <View style={styles.priceInfoRow}>
                     <View style={styles.priceInfoItem}>
+                      <AppText variant="caption" style={styles.sectionLabel}>
+                        Khi đóng cửa
+                      </AppText>
                       <View style={styles.priceWithPercentage}>
-                        <AppText variant="titleMedium">
+                        <AppText variant="titleLarge">
                           {stockData.closePrice}
                         </AppText>
                         <AppText
                           style={[
+                            styles.inlineChange,
                             stockData.closePercentage >= 0
-                              ? { color: AppColors.positiveGreen }
-                              : { color: AppColors.negativeRed },
+                              ? styles.positiveText
+                              : styles.negativeText,
                           ]}
                           variant="body"
                         >
@@ -229,24 +233,25 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
                           {stockData.closePercentage}%
                         </AppText>
                       </View>
-                      <AppText variant="caption" style={{ fontWeight: "700" }}>
-                        Khi đóng cửa
-                      </AppText>
                       <AppText variant="caption">
                         {stockData.exchange} • {stockData.currency}
                       </AppText>
                     </View>
 
                     <View style={styles.priceInfoItem}>
+                      <AppText variant="caption" style={styles.sectionLabel}>
+                        Ngoài giờ
+                      </AppText>
                       <View style={styles.priceWithPercentage}>
                         <AppText variant="titleMedium">
                           {stockData.afterHoursPrice}
                         </AppText>
                         <AppText
                           style={[
+                            styles.inlineChange,
                             stockData.afterHoursPercentage >= 0
-                              ? { color: AppColors.positiveGreen }
-                              : { color: AppColors.negativeRed },
+                              ? styles.positiveText
+                              : styles.negativeText,
                           ]}
                           variant="caption"
                         >
@@ -254,26 +259,49 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
                           {stockData.afterHoursPercentage}%
                         </AppText>
                       </View>
-                      <AppText variant="caption" style={{ fontWeight: "700" }}>
-                        Ngoài giờ
-                      </AppText>
                     </View>
                   </View>
                 </View>
-                <DividerComponent />
               </View>
 
-              {/* Phần biểu đồ vuông */}
               <View style={styles.chartSection}>
                 <View style={styles.chartPlaceholder}>
-                  <AppText variant="caption">Biểu đồ</AppText>
+                  <View style={styles.chartHeader}>
+                    <View>
+                      <AppText variant="caption" style={styles.sectionLabel}>
+                        Biểu đồ hiệu suất
+                      </AppText>
+                      <AppText variant="titleMedium">
+                        {isSelectedPositive ? "Xu hướng tích cực" : "Đang điều chỉnh"}
+                      </AppText>
+                    </View>
+                    <View
+                      style={[
+                        styles.heroChangeBadge,
+                        { backgroundColor: `${selectedChangeColor}22` },
+                      ]}
+                    >
+                      <AppText
+                        variant="caption"
+                        style={{ color: selectedChangeColor }}
+                      >
+                        {isSelectedPositive ? "+" : ""}
+                        {stockData.percentage}%
+                      </AppText>
+                    </View>
+                  </View>
+                  <View style={styles.heroChart}>
+                    <MiniChart
+                      data={stockData.chartData || []}
+                      isPositive={isSelectedPositive}
+                      height={s(120)}
+                    />
+                  </View>
                 </View>
-                <DividerComponent />
               </View>
 
-              {/* Phần dữ liệu chi tiết */}
               <View style={styles.detailsSection}>
-                <AppText variant="titleMedium" style={{ marginBottom: s(15) }}>
+                <AppText variant="titleMedium" style={styles.detailsTitle}>
                   Chi tiết
                 </AppText>
                 <View style={styles.detailsGrid}>
@@ -282,68 +310,56 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
                       <AppText variant="caption">Giá mở cửa hôm nay</AppText>
                       <AppText variant="body">{stockData.todayOpen}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Giá cao hôm nay</AppText>
                       <AppText variant="body">{stockData.todayHigh}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Giá thấp hôm nay</AppText>
                       <AppText variant="body">{stockData.todayLow}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Khối lượng</AppText>
                       <AppText variant="body">{stockData.volume}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Tỷ lệ giá/lợi nhuận</AppText>
                       <AppText variant="body">{stockData.peRatio}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">GT vốn hóa</AppText>
                       <AppText variant="body">{stockData.marketCap}</AppText>
                     </View>
-                    <DividerComponent />
                   </View>
                   <View style={styles.detailsColumn}>
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Cao trong 52 tuần</AppText>
                       <AppText variant="body">{stockData.week52High}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Thấp trong 52 tuần</AppText>
                       <AppText variant="body">{stockData.week52Low}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Khối lượng TB</AppText>
                       <AppText variant="body">
                         {stockData.averageVolume}
                       </AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Lợi tức</AppText>
                       <AppText variant="body">
                         {stockData.dividendYield}
                       </AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">Beta</AppText>
                       <AppText variant="body">{stockData.beta}</AppText>
                     </View>
-                    <DividerComponent />
                     <View style={styles.detailItem}>
                       <AppText variant="caption">EPS</AppText>
                       <AppText variant="body">{stockData.eps}</AppText>
                     </View>
-                    <DividerComponent />
                   </View>
                 </View>
                 <AppText style={styles.yahooLink} variant="caption">
@@ -364,104 +380,187 @@ const BasicBottomSheet: React.FC<BasicBottomSheetProps> = ({
 export default BasicBottomSheet;
 
 const styles = StyleSheet.create({
-  // Phần trên 10% màn hình
   topOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: "8%",
+    height: "9%",
     zIndex: 1000,
-    backgroundColor: AppColors.background,
+    backgroundColor: AppColors.backgroundElevated,
     paddingHorizontal: sharedPaddingHorizontal,
+    justifyContent: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.separator,
+  },
+  tickerCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: s(10),
+    marginRight: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: s(8),
+    backgroundColor: AppColors.cardBackground,
+    borderRadius: s(18),
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  tickerInfo: {
+    minWidth: s(72),
+  },
+  tickerPrice: {
+    color: AppColors.tertiaryText,
+  },
+  tickerChart: {
+    width: s(76),
   },
   bottomSheetBackground: {
     backgroundColor: AppColors.cardBackground,
-    borderTopLeftRadius: s(20),
-    borderTopRightRadius: s(20),
+    borderTopLeftRadius: s(28),
+    borderTopRightRadius: s(28),
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
   scrollContent: {
     backgroundColor: AppColors.cardBackground,
-    paddingBottom: s(20),
+    paddingBottom: s(96),
+  },
+  sheetHeaderWrapper: {
+    paddingHorizontal: sharedPaddingHorizontal,
+    paddingTop: s(18),
+    paddingBottom: s(12),
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.separator,
   },
   headerContainer: {
-    paddingVertical: s(10),
     flexDirection: "row",
-    // alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
+    gap: s(12),
   },
   headerTitleContainer: {
-    flexDirection: "row",
-    gap: s(4),
-    alignItems: "flex-end",
     flex: 1,
+    gap: s(5),
   },
-
+  symbolBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: s(8),
+    paddingVertical: s(3),
+    backgroundColor: AppColors.searchBarBackground,
+    borderRadius: s(999),
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  symbolBadgeText: {
+    color: AppColors.accentBlue,
+    fontSize: s(9),
+  },
   headerIconContainer: {
     flexDirection: "row",
-    gap: s(10),
+    gap: s(8),
     alignItems: "center",
     justifyContent: "flex-end",
-    flex: 0.6,
   },
   closeButton: {
     backgroundColor: AppColors.secondaryBackground,
     borderRadius: 9999,
-    height: s(30),
-    width: s(30),
+    height: s(34),
+    width: s(34),
   },
-  // Phần thông tin giá
+  priceSectionWrapper: {
+    paddingHorizontal: sharedPaddingHorizontal,
+    paddingTop: vs(16),
+  },
   priceInfoSection: {
-    paddingVertical: vs(5),
+    padding: s(14),
+    backgroundColor: AppColors.cardBackgroundSoft,
+    borderRadius: s(18),
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
   priceInfoRow: {
     flexDirection: "row",
+    gap: s(12),
   },
   priceInfoItem: {
     flex: 1,
+    gap: s(6),
   },
   priceWithPercentage: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: s(8),
+    gap: s(4),
   },
-
-  // Phần biểu đồ vuông
+  inlineChange: {
+    fontWeight: "800",
+  },
+  positiveText: {
+    color: AppColors.positiveGreen,
+  },
+  negativeText: {
+    color: AppColors.negativeRed,
+  },
+  sectionLabel: {
+    color: AppColors.tertiaryText,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    fontSize: s(9),
+  },
   chartSection: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingVertical: vs(10),
+    paddingTop: vs(14),
   },
   chartPlaceholder: {
     width: "100%",
-    aspectRatio: 1.5, // Giữ tỉ lệ hình vuông
-    backgroundColor: AppColors.secondaryBackground,
-    borderRadius: s(10),
+    minHeight: s(210),
+    backgroundColor: AppColors.cardBackgroundSoft,
+    borderRadius: s(22),
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    padding: s(16),
+    justifyContent: "space-between",
+  },
+  chartHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: s(8),
+  },
+  heroChangeBadge: {
+    paddingHorizontal: s(10),
+    paddingVertical: s(5),
+    borderRadius: s(999),
+  },
+  heroChart: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: s(10),
   },
-
-  // Phần dữ liệu chi tiết
   detailsSection: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingVertical: vs(15),
+    paddingTop: vs(18),
+  },
+  detailsTitle: {
+    marginBottom: s(12),
   },
   detailsGrid: {
     flexDirection: "row",
-    gap: s(10),
+    gap: s(12),
   },
   detailsColumn: {
     flex: 1,
+    gap: s(10),
   },
   detailItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: s(4),
-    marginBottom: s(8),
+    gap: s(5),
+    padding: s(10),
+    minHeight: s(66),
+    backgroundColor: AppColors.backgroundElevated,
+    borderRadius: s(14),
+    borderWidth: 1,
+    borderColor: AppColors.separator,
   },
-
   yahooLink: {
     color: AppColors.accentBlue,
-    marginTop: vs(10),
+    marginTop: vs(16),
+    textAlign: "center",
   },
 });

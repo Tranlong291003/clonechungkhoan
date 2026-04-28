@@ -7,6 +7,7 @@ import { PaperProvider } from "react-native-paper";
 import "react-native-reanimated";
 
 import { Theme } from "@/styles/Theme";
+import { AppColors } from "@/styles/Colors";
 
 export default function RootLayout() {
   return (
@@ -16,7 +17,7 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
           </Stack>
-          <StatusBar style="light" backgroundColor="#000000" />
+          <StatusBar style="light" backgroundColor={AppColors.background} />
         </ThemeProvider>
       </PaperProvider>
     </GestureHandlerRootView>
