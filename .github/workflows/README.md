@@ -57,14 +57,25 @@ Nếu thấy `Review parsed. risk=medium findings=N` → API hoạt động ổn
 
 ---
 
-## 🚀 Kích hoạt
+## 🚀 Cách hoạt động
 
-Workflow đã tự động chạy khi:
-- Mở PR mới
-- Push thêm commit vào PR
-- Reopen hoặc đánh dấu ready_for_review
+Workflow tự động chạy khi:
+- **Mở PR mới** (auto)
+- **Push thêm commit** vào PR (auto)
+- **Reopen** hoặc **ready_for_review** (auto)
+- **Comment chứa `@ollama-review re-run`** hoặc `re-request review` (manual)
+- **Actions → Run workflow** với `pr_number` (manual từ UI)
 
-Nếu muốn chạy tay: **Actions → Ollama PR Review → Run workflow** → nhập `pr_number`.
+### 🤖 Bot làm gì?
+
+Mỗi lần review, bot sẽ:
+1. Lấy diff của PR
+2. Gọi Ollama API để sinh review (JSON nghiêm ngặt)
+3. **Submit một PR Review** (không phải issue comment) → bot tự động xuất hiện trong **Reviewers** với nút **"Re-request review"** giống Copilot
+4. Chọn `event` thông minh:
+   - Có `blocking` finding → `REQUEST_CHANGES`
+   - Không có → `COMMENT` (bot **không tự approve** để giữ human-in-the-loop)
+5. Inline comments tại đúng dòng trong diff
 
 ---
 

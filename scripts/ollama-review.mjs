@@ -228,6 +228,59 @@ async function postReviewWithInline(review) {
   return res.json();
 }
 
+// Pick the PR review event based on the risk & findings.
+function pickReviewEvent(review) {
+  const findings = review.findings || [];
+  const hasBlocking = findings.some((f) => f.severity === "blocking");
+  if (hasBlocking) return "REQUEST_CHANGES";
+  // Never auto-APPROVE — keep a human in the loop. Bot only comments or requests changes.
+  return "COMMENT";
+}
+
+async function postReview(review) {
+  // Submit a PR review so the bot appears in the "Reviewers" section
+  // with a "Re-request review" button. Inline comments + summary are
+  // posted together when there are valid inline findings; otherwise
+  // we submit a summary-only review.
+  const validComments = [];
+  for (const f of review.findings || []) {
+    if (!f.path || !Number.isInteger(f.line)) continue;
+    validComments.push({
+      path: f.path,
+      line: f.line,
+      side: "RIGHT",
+      body: `**${f.severity.toUpperCase()} — ${f.title}**\n\n${f.comment}`,
+    });
+  }
+  // Always include findings not posted as inline in the summary body.
+  const findingsInSummary = (review.findings || []).filter(
+    (f) => !f.path || !Number.isInteger(f.line)
+  );
+  const summaryReview = { ...review, findings: findingsInSummary };
+  const event = pickReviewEvent(review);
+  const url = `https://api.github.com/repos/${PR_REPO}/pulls/${PR_NUMBER}/reviews`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${TOKEN}`,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      event,
+      body: buildReviewBody(summaryReview),
+      comments: validComments,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    log("PR review submit failed, falling back to issue comment:", res.status, text.slice(0, 200));
+    return null;
+  }
+  return res.json();
+}
+
 async function main() {
   if (!BASE_URL || !API_KEY) {
     log("Missing OLLAMA_BASE_URL or OLLAMA_API_KEY");
@@ -264,12 +317,12 @@ async function main() {
     return;
   }
 
-  const inline = await postReviewWithInline(review);
-  if (!inline) {
-    await postIssueComment(body);
-    log("Posted summary as issue comment");
+  const result = await postReview(review);
+  if (result) {
+    log(`Posted PR review (event=${pickReviewEvent(review)})`);
   } else {
-    log(`Posted review with ${inline.body?.length} inline comments`);
+    await postIssueComment(body);
+    log("Posted summary as issue comment (fallback)");
   }
 }
 
