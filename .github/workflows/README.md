@@ -4,12 +4,9 @@ Tự động review Pull Request bằng **Ollama** (qua OpenAI-compatible API tu
 
 1. Lấy diff của PR
 2. Gửi cho model `ollama/minimax-m3` kèm prompt review
-3. Submit một **PR review** (không phải issue comment) → bot tự động xuất hiện trong **Reviewers** với nút **"Re-request review"** giống Copilot
+3. Submit một **PR review** dưới tên `github-actions[bot]` → xuất hiện trong **Reviewers** với nút **"Re-request review"** giống Copilot
 
-Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `github-actions[bot]`, nên:
-- Avatar/tên hiển thị đúng brand
-- Review không bị gộp vào activity của user tạo workflow
-- Có thể xin quyền riêng (chỉ `Pull requests: write`)
+> Bot dùng `GITHUB_TOKEN` mặc định của GitHub Actions, nên bạn **không cần** tạo GitHub App riêng.
 
 ---
 
@@ -20,46 +17,24 @@ Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `githu
 | `OLLAMA_BASE_URL` | ✅ | `https://r4l626d.abc-tunnel.us/v1` |
 | `OLLAMA_API_KEY` | ✅ | API key của tunnel |
 | `OLLAMA_MODEL` | ⬜ | Mặc định `ollama/minimax-m3` |
-| `OLLAMA_APP_CLIENT_ID` | ✅ | App Client ID (vd: `4274454`) |
-| `OLLAMA_APP_PRIVATE_KEY` | ✅ | Nội dung file `.pem` (PKCS#8) khi tạo App |
 
-> `GITHUB_TOKEN` mặc định **không** dùng để post review nữa — token của GitHub App được tạo runtime bằng `actions/create-github-app-token@v3`.
+> Quyền của `GITHUB_TOKEN` đã được khai báo trong workflow:
+> - `contents: read`
+> - `pull-requests: write` (để post review)
 
-### 🛠️ Setup GitHub App (1 lần)
-
-1. Vào https://github.com/settings/apps/new
-2. **GitHub App name**: `Ollama PR Review` (hoặc tên bạn thích)
-3. **Homepage URL**: trang repo của bạn
-4. Bỏ chọn **Active** ở Webhook (không cần)
-5. **Repository permissions**:
-   - `Contents`: Read-only
-   - `Pull requests`: Read & Write
-   - `Metadata`: Read-only (mặc định)
-6. Sau khi tạo:
-   - Copy **App Client ID** → secret `OLLAMA_APP_CLIENT_ID`
-   - **Generate a private key** → download `.pem` → **convert sang PKCS#8** (xem bước 7) → paste nội dung vào secret `OLLAMA_APP_PRIVATE_KEY`
-   - Vào **Install App** → cài vào repo
-7. Convert `.pem` sang PKCS#8 (Node crypto cần định dạng này):
-   ```bash
-   node -e "const c=require('crypto'),fs=require('fs');const k=c.createPrivateKey(fs.readFileSync('app.pem'));fs.writeFileSync('app-pkcs8.pem',k.export({type:'pkcs8',format:'pem'}));"
-   ```
-   Sau đó `gh secret set OLLAMA_APP_PRIVATE_KEY --body < app-pkcs8.pem`
-
-> **Quan trọng**: nếu secrets chưa có, workflow sẽ fail với `Missing OLLAMA_BASE_URL or OLLAMA_API_KEY`. Cần add secrets **trước khi merge** (hoặc trước khi re-run CI).
+Nếu thiếu 1 trong 2 secrets Ollama, workflow sẽ fail với `Missing OLLAMA_BASE_URL or OLLAMA_API_KEY`. Cần add **trước khi merge** (hoặc trước khi re-run CI).
 
 ---
 
 ## 📁 Files đã thêm
 
-- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review (dùng `actions/create-github-app-token@v3` để post review dưới tên GitHub App)
+- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review
 - **`scripts/ollama-review.mjs`** — Node script gọi Ollama API, parse JSON, post review
 - **`scripts/fixtures/sample.diff`** — diff mẫu để test
 - **`scripts/.gitignore`** — bỏ qua artifact tạm
-- **`.github/CODEOWNERS`** — yêu cầu bot review mọi PR, tạo nút **Request review** cố định
 
-> Bot có 2 cách re-review: (1) comment `@ollama-review re-run` trên PR
-> (workflow trigger qua `issue_comment`), hoặc (2) vào Reviewers → nhấn
-> **Re-request review** (luôn có sẵn vì CODEOWNERS yêu cầu bot).
+> **Cách re-review** (vì không có CODEOWNERS yêu cầu bot, không có nút Request cố định):
+> Comment `@ollama-review re-run` trên PR (workflow sẽ trigger qua `issue_comment`).
 
 ---
 
@@ -101,7 +76,7 @@ Workflow tự động chạy khi:
 Mỗi lần review, bot sẽ:
 1. Lấy diff của PR
 2. Gọi Ollama API để sinh review (JSON nghiêm ngặt)
-3. **Submit một PR Review** (không phải issue comment) → bot tự động xuất hiện trong **Reviewers** với nút **"Re-request review"** giống Copilot
+3. **Submit một PR Review** (không phải issue comment) → bot tự động xuất hiện trong **Reviewers**
 4. Chọn `event` thông minh:
    - Có `blocking` finding → `REQUEST_CHANGES`
    - Không có → `COMMENT` (bot **không tự approve** để giữ human-in-the-loop)

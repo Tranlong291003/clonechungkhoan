@@ -13,8 +13,8 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
-  # App token has its own permissions; we don't need write on GITHUB_TOKEN
+  pull-requests: write
+  # github-actions[bot] will post the review using the default GITHUB_TOKEN.
 
 concurrency:
   group: ollama-pr-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
@@ -27,17 +27,6 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Generate App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.OLLAMA_APP_CLIENT_ID }}
-          private-key: ${{ secrets.OLLAMA_APP_PRIVATE_KEY }}
-          # Only request the PRs permission for this app
-          permission-contents: read
-          permission-pull-requests: write
-          owner: ${{ github.repository_owner }}
-
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
@@ -52,7 +41,7 @@ jobs:
       - name: Determine PR number
         id: pr
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           EVENT="${{ github.event_name }}"
           if [ "$EVENT" = "workflow_dispatch" ]; then
@@ -80,7 +69,7 @@ jobs:
         id: diff
         if: steps.pr.outputs.pr_number
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: |
           gh pr diff "$PR_NUMBER" > pr.diff
@@ -93,7 +82,7 @@ jobs:
           OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
           OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
           OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL || 'ollama/minimax-m3' }}
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
