@@ -1,0 +1,12 @@
+# CODEOWNERS
+# These users will be requested for review when someone opens a pull request
+# that touches files they own. This gives a persistent "Request" / "Re-request
+# review" button next to the bot, similar to how Copilot appears in the
+# Reviewers list.
+#
+# Format: pattern   @owner
+#   - one owner per line
+#   - order matters: the last matching pattern wins
+
+# Default: request Ollama PR Review on every PR touching any source file.
+/                                            @Tranlong291003/ollama-pr-review

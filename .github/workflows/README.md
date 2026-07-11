@@ -23,7 +23,7 @@ Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `githu
 | `OLLAMA_APP_CLIENT_ID` | ✅ | App Client ID (vd: `4274454`) |
 | `OLLAMA_APP_PRIVATE_KEY` | ✅ | Nội dung file `.pem` (PKCS#8) khi tạo App |
 
-> `GITHUB_TOKEN` mặc định **không** dùng để post review nữa — token của GitHub App được tạo runtime bằng `actions/create-github-app-token@v1`.
+> `GITHUB_TOKEN` mặc định **không** dùng để post review nữa — token của GitHub App được tạo runtime bằng `actions/create-github-app-token@v3`.
 
 ### 🛠️ Setup GitHub App (1 lần)
 
@@ -36,9 +36,14 @@ Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `githu
    - `Pull requests`: Read & Write
    - `Metadata`: Read-only (mặc định)
 6. Sau khi tạo:
-   - Copy **App ID** → secret `OLLAMA_APP_ID`
-   - **Generate a private key** → download `.pem` → paste nội dung vào secret `OLLAMA_APP_PRIVATE_KEY`
+   - Copy **App Client ID** → secret `OLLAMA_APP_CLIENT_ID`
+   - **Generate a private key** → download `.pem` → **convert sang PKCS#8** (xem bước 7) → paste nội dung vào secret `OLLAMA_APP_PRIVATE_KEY`
    - Vào **Install App** → cài vào repo
+7. Convert `.pem` sang PKCS#8 (Node crypto cần định dạng này):
+   ```bash
+   node -e "const c=require('crypto'),fs=require('fs');const k=c.createPrivateKey(fs.readFileSync('app.pem'));fs.writeFileSync('app-pkcs8.pem',k.export({type:'pkcs8',format:'pem'}));"
+   ```
+   Sau đó `gh secret set OLLAMA_APP_PRIVATE_KEY --body < app-pkcs8.pem`
 
 > **Quan trọng**: nếu secrets chưa có, workflow sẽ fail với `Missing OLLAMA_BASE_URL or OLLAMA_API_KEY`. Cần add secrets **trước khi merge** (hoặc trước khi re-run CI).
 
@@ -46,19 +51,15 @@ Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `githu
 
 ## 📁 Files đã thêm
 
-- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review
+- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review (dùng `actions/create-github-app-token@v3` để post review dưới tên GitHub App)
 - **`scripts/ollama-review.mjs`** — Node script gọi Ollama API, parse JSON, post review
 - **`scripts/fixtures/sample.diff`** — diff mẫu để test
 - **`scripts/.gitignore`** — bỏ qua artifact tạm
+- **`.github/CODEOWNERS`** — yêu cầu bot review mọi PR, tạo nút **Request review** cố định
 
----
-
-## 📁 Files đã thêm
-
-- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review
-- **`scripts/ollama-review.mjs`** — Node script gọi Ollama API, parse JSON, post review
-- **`scripts/fixtures/sample.diff`** — diff mẫu để test
-- **`scripts/.gitignore`** — bỏ qua artifact tạm
+> Bot có 2 cách re-review: (1) comment `@ollama-review re-run` trên PR
+> (workflow trigger qua `issue_comment`), hoặc (2) vào Reviewers → nhấn
+> **Re-request review** (luôn có sẵn vì CODEOWNERS yêu cầu bot).
 
 ---
 
