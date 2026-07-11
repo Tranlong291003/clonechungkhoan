@@ -29,6 +29,10 @@ const CardWatchList = memo(
     const percentageColor = isPositive
       ? AppColors.positiveGreen
       : AppColors.negativeRed;
+    const percentageBackground = isPositive
+      ? "rgba(34, 197, 94, 0.14)"
+      : "rgba(244, 63, 94, 0.14)";
+    const formattedPercentage = `${isPositive ? "+" : ""}${percentage}%`;
 
     return (
       <TouchableOpacity
@@ -39,22 +43,24 @@ const CardWatchList = memo(
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardCompanyInfo}>
-              <AppText
-                variant="titleMedium"
-                // style={{ fontSize: s(14), fontWeight: "700" }}
-              >
-                {name}
-              </AppText>
-              <AppText numberOfLines={1} variant="caption">
-                {company}
-              </AppText>
+              <View style={styles.symbolBadge}>
+                <AppText variant="caption" style={styles.symbolText}>
+                  {name.slice(0, 2)}
+                </AppText>
+              </View>
+              <View style={styles.companyText}>
+                <AppText variant="titleMedium">{name}</AppText>
+                <AppText numberOfLines={1} variant="caption">
+                  {company}
+                </AppText>
+              </View>
             </View>
             <View style={styles.chartInfo}>
               {chartData && (
                 <MiniChart
                   data={chartData}
                   isPositive={isPositive}
-                  height={s(25)}
+                  height={s(36)}
                 />
               )}
             </View>
@@ -66,18 +72,17 @@ const CardWatchList = memo(
                 style={[
                   styles.cardPercentage,
                   {
-                    backgroundColor: percentageColor,
+                    backgroundColor: percentageBackground,
+                    color: percentageColor,
+                    borderColor: percentageColor,
                   },
                 ]}
                 variant="caption"
               >
-                {percentage} %
+                {formattedPercentage}
               </AppText>
             </View>
           </Card.Content>
-          <View style={{ marginTop: s(10) }}>
-            <View style={styles.lineSeparator} />
-          </View>
         </Card>
       </TouchableOpacity>
     );
@@ -90,18 +95,49 @@ export default CardWatchList;
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: sharedPaddingHorizontal - s(10), // Căn thẳng với text trong SearchBar
+    paddingHorizontal: sharedPaddingHorizontal,
+    marginBottom: s(10),
   },
   card: {
-    backgroundColor: AppColors.background,
+    backgroundColor: AppColors.cardBackground,
+    borderRadius: s(20),
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    elevation: 0,
+    shadowColor: "#38BDF8",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
   },
   cardContent: {
     flexDirection: "row",
-    gap: s(5),
+    alignItems: "center",
+    gap: s(10),
+    paddingHorizontal: s(14),
+    paddingVertical: s(14),
   },
   cardCompanyInfo: {
-    flexDirection: "column",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: s(10),
     flex: 2,
+  },
+  symbolBadge: {
+    height: s(40),
+    width: s(40),
+    borderRadius: s(14),
+    backgroundColor: AppColors.cardBackgroundSoft,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  symbolText: {
+    color: AppColors.accentBlue,
+    fontWeight: "800",
+  },
+  companyText: {
+    flex: 1,
   },
   cardPriceInfo: {
     flexDirection: "column",
@@ -109,31 +145,25 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   chartInfo: {
-    flex: 0.7,
+    flex: 0.9,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: s(5),
     gap: s(4),
   },
   cardPrice: {
     fontWeight: "700",
-    marginBottom: s(2),
+    marginBottom: s(6),
     textAlign: "right",
   },
   cardPercentage: {
-    minWidth: s(50),
-    color: AppColors.primaryText,
+    minWidth: s(58),
     fontWeight: "700",
-    textAlign: "right",
+    textAlign: "center",
     alignSelf: "flex-end",
-    borderRadius: s(3),
-    paddingHorizontal: s(4),
-    paddingVertical: s(2),
+    borderRadius: s(999),
+    borderWidth: 1,
+    paddingHorizontal: s(8),
+    paddingVertical: s(4),
     gap: s(2),
-  },
-  lineSeparator: {
-    height: 0.5,
-    backgroundColor: AppColors.separator,
-    marginHorizontal: s(10),
   },
 });

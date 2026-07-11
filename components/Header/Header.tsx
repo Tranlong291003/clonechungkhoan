@@ -37,18 +37,22 @@ const Header = () => {
 
   return (
     <View style={styles.container}>
-      <View>
-        <AppText variant="titleLarge">Chứng khoán</AppText>
-        <AppText
-          style={{ color: AppColors.secondaryText }}
-          variant="titleLarge"
-        >
+      <View style={styles.titleGroup}>
+        <View style={styles.marketBadge}>
+          <View style={styles.liveDot} />
+          <AppText style={styles.badgeText} variant="caption">
+            Watchlist trực tiếp
+          </AppText>
+        </View>
+        <AppText variant="display">Chứng khoán</AppText>
+        <AppText style={styles.dateText} variant="caption">
           {formatNgayThang(new Date())}
         </AppText>
       </View>
       <CustomMoreMenu
         items={menuItems}
-        backgroundColor={AppColors.secondaryBackground}
+        backgroundColor={AppColors.cardBackgroundSoft}
+        iconColor={AppColors.iconAccent}
       />
     </View>
   );
@@ -57,10 +61,38 @@ const Header = () => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: sharedPaddingHorizontal,
-    paddingBottom: s(12),
+    paddingTop: s(8),
+    paddingBottom: s(18),
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  titleGroup: {
+    gap: s(5),
+  },
+  marketBadge: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: s(6),
+    paddingHorizontal: s(10),
+    paddingVertical: s(5),
+    borderRadius: 999,
+    backgroundColor: "rgba(56, 189, 248, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(56, 189, 248, 0.18)",
+  },
+  liveDot: {
+    width: s(6),
+    height: s(6),
+    borderRadius: 999,
+    backgroundColor: AppColors.positiveGreen,
+  },
+  badgeText: {
+    color: AppColors.accentBlue,
+  },
+  dateText: {
+    color: AppColors.secondaryText,
   },
 });
 export default memo(Header);

@@ -1,32 +1,31 @@
 export const AppColors = {
-  // Background colors - theo ảnh
-  background: "#000000", // Pure black background
-  cardBackground: "#1A1A1A", // Dark gray for cards/content blocks
-  secondaryBackground: "#2C2C2C", // Slightly lighter dark gray
+  background: "#05070D",
+  backgroundElevated: "#0A0F1C",
+  cardBackground: "#111827",
+  cardBackgroundSoft: "#172033",
+  secondaryBackground: "#202B43",
 
-  // Text colors - theo ảnh
-  primaryText: "#FFFFFF", // White for main text
-  secondaryText: "#AAAAAA", // Light gray for descriptions
-  tertiaryText: "#8E8E93", // Medium gray for placeholders
+  primaryText: "#F8FAFC",
+  secondaryText: "#A7B0C0",
+  tertiaryText: "#64748B",
 
-  // UI elements - theo ảnh
-  searchBarBackground: "#1C1C1E", // Dark gray for search bar
-  separator: "#444444", // Subtle border color
+  searchBarBackground: "#121B2D",
+  separator: "rgba(148, 163, 184, 0.16)",
+  border: "rgba(148, 163, 184, 0.2)",
+  overlay: "rgba(2, 6, 23, 0.78)",
 
-  // Accent colors - theo ảnh
-  accentBlue: "#0A84FF", // Vibrant blue for section titles
-  positiveGreen: "#34C759", // Bright green for positive changes
-  negativeRed: "#FF3B30", // Red for negative changes
+  accentBlue: "#38BDF8",
+  accentPurple: "#8B5CF6",
+  accentAmber: "#F59E0B",
+  positiveGreen: "#22C55E",
+  negativeRed: "#F43F5E",
 
-  // Status indicators - theo ảnh
-  selectedTabBackground: "#FFFFFF", // White for selected tabs
-  selectedTabText: "#1A1A1A", // Dark text on selected tabs
+  selectedTabBackground: "#E0F2FE",
+  selectedTabText: "#082F49",
 
-  // Brand colors - theo ảnh
-  yahooFinanceText: "#E5E5EA", // Slightly off-white for Yahoo Finance branding
+  yahooFinanceText: "#E0E7FF",
 
-  // Icon colors - theo ảnh
-  iconPrimary: "#FFFFFF", // White for primary icons
-  iconSecondary: "#AAAAAA", // Light gray for secondary icons
-  iconAccent: "#0A84FF", // Blue for accent icons
+  iconPrimary: "#F8FAFC",
+  iconSecondary: "#94A3B8",
+  iconAccent: "#38BDF8",
 };

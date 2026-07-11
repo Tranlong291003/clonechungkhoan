@@ -7,7 +7,7 @@ import { s } from "react-native-size-matters";
 interface AppTextProps extends TextProps {
   children: React.ReactNode;
   style?: TextStyle | TextStyle[];
-  variant?: "titleLarge" | "titleMedium" | "body" | "caption";
+  variant?: "display" | "titleLarge" | "titleMedium" | "body" | "caption";
 }
 
 const AppText: FC<AppTextProps> = ({
@@ -26,23 +26,31 @@ const AppText: FC<AppTextProps> = ({
 export default AppText;
 
 const styles = StyleSheet.create({
+  display: {
+    fontSize: s(34),
+    fontWeight: "900",
+    letterSpacing: -1,
+    color: AppColors.primaryText,
+  },
   titleLarge: {
-    fontSize: s(18), // Tiêu đề chính (VD: "Chứng khoán")
-    fontWeight: "700",
+    fontSize: s(28),
+    fontWeight: "800",
+    letterSpacing: -0.6,
     color: AppColors.primaryText,
   },
   titleMedium: {
-    fontSize: s(16), // Tiêu đề phụ, mục nhóm (VD: "Mã chứng khoán của tôi")
+    fontSize: s(16),
     fontWeight: "700",
+    letterSpacing: -0.2,
     color: AppColors.primaryText,
   },
   body: {
-    fontSize: s(11), // Dòng nội dung chính (VD: giá, tên mã, công ty)
+    fontSize: s(13),
     fontWeight: "600",
     color: AppColors.primaryText,
   },
   caption: {
-    fontSize: s(11), // Text phụ, chú thích nhỏ (VD: “Thị trường đã đóng”)
+    fontSize: s(11),
     color: AppColors.secondaryText,
     fontWeight: "600",
   },
