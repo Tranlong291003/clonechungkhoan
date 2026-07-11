@@ -20,8 +20,8 @@ Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `githu
 | `OLLAMA_BASE_URL` | ✅ | `https://r4l626d.abc-tunnel.us/v1` |
 | `OLLAMA_API_KEY` | ✅ | API key của tunnel |
 | `OLLAMA_MODEL` | ⬜ | Mặc định `ollama/minimax-m3` |
-| `OLLAMA_APP_ID` | ✅ | App ID từ GitHub App (vd: `4274454`) |
-| `OLLAMA_APP_PRIVATE_KEY` | ✅ | Nội dung file `.pem` khi tạo App |
+| `OLLAMA_APP_CLIENT_ID` | ✅ | App Client ID (vd: `4274454`) |
+| `OLLAMA_APP_PRIVATE_KEY` | ✅ | Nội dung file `.pem` (PKCS#8) khi tạo App |
 
 > `GITHUB_TOKEN` mặc định **không** dùng để post review nữa — token của GitHub App được tạo runtime bằng `actions/create-github-app-token@v1`.
 
