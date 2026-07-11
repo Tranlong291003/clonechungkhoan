@@ -103,31 +103,56 @@ Rules:
 
 async function callOllama(prompt) {
   const url = `${BASE_URL}/chat/completions`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      temperature: 0.2,
-      stream: false,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: "You are a meticulous code reviewer. Output only valid JSON." },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Ollama API ${res.status}: ${body.slice(0, 500)}`);
+  const maxRetries = 3;
+  let lastErr;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          temperature: 0.2,
+          stream: false,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: "You are a meticulous code reviewer. Output only valid JSON." },
+            { role: "user", content: prompt },
+          ],
+        }),
+        // Node 20 fetch has no timeout option; rely on tunnel/server timeouts.
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        const err = new Error(`Ollama API ${res.status}: ${body.slice(0, 500)}`);
+        // Retry on 5xx, not on 4xx
+        if (res.status >= 500 && attempt < maxRetries) {
+          const wait = attempt * 2000;
+          log(`5xx from Ollama, retrying in ${wait}ms (attempt ${attempt}/${maxRetries})...`);
+          await new Promise((r) => setTimeout(r, wait));
+          lastErr = err;
+          continue;
+        }
+        throw err;
+      }
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error("Empty response from Ollama: " + JSON.stringify(data).slice(0, 300));
+      return content;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < maxRetries && (e.code === "ECONNRESET" || e.code === "ETIMEDOUT" || e.code === "ENOTFOUND")) {
+        log(`Network error ${e.code}, retrying (${attempt}/${maxRetries})...`);
+        await new Promise((r) => setTimeout(r, attempt * 2000));
+        continue;
+      }
+      throw e;
+    }
   }
-  const data = await res.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Empty response from Ollama");
-  return content;
+  throw lastErr;
 }
 
 function tryParseJson(text) {
