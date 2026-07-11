@@ -4,23 +4,52 @@ Tự động review Pull Request bằng **Ollama** (qua OpenAI-compatible API tu
 
 1. Lấy diff của PR
 2. Gửi cho model `ollama/minimax-m3` kèm prompt review
-3. Đăng 1 **review comment** trên PR (kèm inline comments nếu model trỏ đúng dòng)
+3. Submit một **PR review** (không phải issue comment) → bot tự động xuất hiện trong **Reviewers** với nút **"Re-request review"** giống Copilot
+
+Bot đăng nhập qua **GitHub App** riêng (`Ollama PR Review`) thay vì `github-actions[bot]`, nên:
+- Avatar/tên hiển thị đúng brand
+- Review không bị gộp vào activity của user tạo workflow
+- Có thể xin quyền riêng (chỉ `Pull requests: write`)
 
 ---
 
 ## 🔐 Cấu hình Secrets (Settings → Secrets and variables → Actions)
 
-| Secret | Bắt buộc | Giá trị mẫu |
+| Secret | Bắt buộc | Mô tả |
 |---|---|---|
 | `OLLAMA_BASE_URL` | ✅ | `https://r4l626d.abc-tunnel.us/v1` |
-| `OLLAMA_API_KEY` | ✅ | `sk-73fc943c07438cb0-...` |
-| `OLLAMA_MODEL` | ⬜ (mặc định `ollama/minimax-m3`) | `ollama/minimax-m3` |
-| `GITHUB_TOKEN` | ✅ | Tự động cấp bởi GitHub Actions (mặc định) |
+| `OLLAMA_API_KEY` | ✅ | API key của tunnel |
+| `OLLAMA_MODEL` | ⬜ | Mặc định `ollama/minimax-m3` |
+| `OLLAMA_APP_ID` | ✅ | App ID từ GitHub App (vd: `4274454`) |
+| `OLLAMA_APP_PRIVATE_KEY` | ✅ | Nội dung file `.pem` khi tạo App |
 
-> Quyền của `GITHUB_TOKEN` đã được khai báo trong workflow:
-> - `contents: read`
-> - `pull-requests: write` (để post review)
-> - `checks: write` (để tạo status check)
+> `GITHUB_TOKEN` mặc định **không** dùng để post review nữa — token của GitHub App được tạo runtime bằng `actions/create-github-app-token@v1`.
+
+### 🛠️ Setup GitHub App (1 lần)
+
+1. Vào https://github.com/settings/apps/new
+2. **GitHub App name**: `Ollama PR Review` (hoặc tên bạn thích)
+3. **Homepage URL**: trang repo của bạn
+4. Bỏ chọn **Active** ở Webhook (không cần)
+5. **Repository permissions**:
+   - `Contents`: Read-only
+   - `Pull requests`: Read & Write
+   - `Metadata`: Read-only (mặc định)
+6. Sau khi tạo:
+   - Copy **App ID** → secret `OLLAMA_APP_ID`
+   - **Generate a private key** → download `.pem` → paste nội dung vào secret `OLLAMA_APP_PRIVATE_KEY`
+   - Vào **Install App** → cài vào repo
+
+> **Quan trọng**: nếu secrets chưa có, workflow sẽ fail với `Missing OLLAMA_BASE_URL or OLLAMA_API_KEY`. Cần add secrets **trước khi merge** (hoặc trước khi re-run CI).
+
+---
+
+## 📁 Files đã thêm
+
+- **`.github/workflows/ollama-pr-review.yml`** — workflow trigger khi PR open/sync/reopen/ready_for_review
+- **`scripts/ollama-review.mjs`** — Node script gọi Ollama API, parse JSON, post review
+- **`scripts/fixtures/sample.diff`** — diff mẫu để test
+- **`scripts/.gitignore`** — bỏ qua artifact tạm
 
 ---
 
