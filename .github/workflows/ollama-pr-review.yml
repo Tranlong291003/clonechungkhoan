@@ -75,7 +75,7 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
         run: |
           gh pr diff "$PR_NUMBER" > pr.diff
-          gh pr view "$PR_NUMBER" --json title,body,baseRefName,headRefName,additions,deletions,changedFiles,user > pr.json
+          gh pr view "$PR_NUMBER" --json title,body,baseRefName,headRefName,additions,deletions,changedFiles,author > pr.json
           echo "diff_size=$(wc -c < pr.diff)" >> "$GITHUB_OUTPUT"
 
       - name: Run Ollama review
