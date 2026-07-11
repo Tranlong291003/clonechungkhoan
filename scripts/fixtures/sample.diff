@@ -1,0 +1,22 @@
+diff --git a/screens/Home/HomeScreen.tsx b/screens/Home/HomeScreen.tsx
+index 0000001..0000002 100644
+--- a/screens/Home/HomeScreen.tsx
++++ b/screens/Home/HomeScreen.tsx
+@@ -1,5 +1,6 @@
+ import BasicBottomSheet from "@/components/BottomSheet/BasicBottomSheet";
+ import Footer from "@/components/Footer/Footer";
+ import Header from "@/components/Header/Header";
++import EmptyState from "@/components/EmptyState/EmptyState";
+ import SearchBar from "@/components/SearchBar";
+ import AppText from "@/components/Text/AppText";
+ import CardWatchList from "@/components/WatchList/CardWatchList";
+@@ -15,6 +16,12 @@ const HomeScreen = () => {
+   const handleCardPress = (item: StockData) => {
+     setSelectedStock(item);
+   };
++
++  // Bug: filteredStocks[0] can be undefined when search returns no results
++  // and a previous stock was open.
++  const handleSafeSelect = (s) => {
++    if (s) setSelectedStock(s);
++  };

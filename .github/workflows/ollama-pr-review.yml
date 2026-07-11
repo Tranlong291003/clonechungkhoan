@@ -1,0 +1,99 @@
+name: Ollama PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to review"
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  # github-actions[bot] will post the review using the default GITHUB_TOKEN.
+
+concurrency:
+  group: ollama-pr-review-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: AI code review via Ollama
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Determine PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EVENT="${{ github.event_name }}"
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+          elif [ "$EVENT" = "issue_comment" ]; then
+            # PR conversation comments have issue_number == PR number
+            PR_NUMBER="${{ github.event.issue.number }}"
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            # Manual re-request trigger: comment must contain the magic phrase
+            if ! echo "$COMMENT_BODY" | grep -qiE '@ollama-review\s+re-run|re-request review'; then
+              echo "Comment does not request re-review, skipping."
+              exit 0
+            fi
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR number, skipping."
+            exit 0
+          fi
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
+
+      - name: Fetch PR diff
+        id: diff
+        if: steps.pr.outputs.pr_number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: |
+          gh pr diff "$PR_NUMBER" > pr.diff
+          gh pr view "$PR_NUMBER" --json title,body,baseRefName,headRefName,additions,deletions,changedFiles,author > pr.json
+          echo "diff_size=$(wc -c < pr.diff)" >> "$GITHUB_OUTPUT"
+
+      - name: Run Ollama review
+        if: steps.diff.outputs.diff_size
+        env:
+          OLLAMA_BASE_URL: ${{ secrets.OLLAMA_BASE_URL }}
+          OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL || 'ollama/minimax-m3' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_REPO: ${{ github.repository }}
+        run: node scripts/ollama-review.mjs
+
+      - name: Upload review artifact
+        if: always() && steps.diff.outputs.diff_size
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-review
+          path: review-output.md
+          if-no-files-found: ignore
+          retention-days: 14
