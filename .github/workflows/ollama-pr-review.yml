@@ -31,7 +31,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ secrets.OLLAMA_APP_ID }}
+          client-id: ${{ secrets.OLLAMA_APP_CLIENT_ID }}
           private-key: ${{ secrets.OLLAMA_APP_PRIVATE_KEY }}
           # Only request the PRs permission for this app
           permission-contents: read
